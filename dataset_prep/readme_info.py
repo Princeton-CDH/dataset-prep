@@ -17,30 +17,39 @@ def readme_info(
     # print out summary information for inclusion in a plain text readme file
 
     # open the data file at the specified path based on the format in the resource
-    match resource.format:
+    match dpkg_resource.format:
         case "csv":
-            df = pl.read_csv(filepath)
+            df = pl.scan_csv(filepath)
         case "json":
-            df = pl.read_json(filepath)
+            df = pl.read_json(filepath, infer_schema_length=1000)
         case "jsonl":
             # polars handles compression automatically
-            df = pl.read_ndjson(filepath)
+            df = pl.scan_ndjson(filepath)
         case _:
-            raise ValueError(f"Unsupported format: {resource.format}")
+            raise ValueError(f"Unsupported format: {dpkg_resource.format}")
 
     print(f"\n\nDATA-SPECIFIC INFORMATION FOR: {dpkg_resource.path}\n\n")
 
-    print(f"1. Number of fields: {len(df.columns)}\n")
-    print(f"2. Number of rows: {df.height:,}\n")
+    df_columns = df.collect_schema().names()
+    print(f"1. Number of fields: {len(df_columns)}\n")
+
+    # calculate total rows for lazy-loaded csv/jsonl
+    if isinstance(df, pl.LazyFrame):
+        num_rows = df.select(pl.len()).collect().item()
+    else:
+        # otherwise, use height
+        num_rows = df.height
+    print(f"2. Number of rows: {num_rows:,}\n")
     schema_fields = dpkg_resource.schema.fields
 
-    assert len(schema_fields) == len(df.columns)
+    # check that datapackage and data file agree
+    assert len(schema_fields) == len(df_columns)
     field_info = {field.name: field for field in schema_fields}
 
     # output details about fields when requested
     if field_list:
         print("3. Field List:\n")
-        for col in df.columns:
+        for col in df_columns:
             print("%s : %s" % (col, field_info[col].description))
 
 
@@ -71,7 +80,7 @@ def data_dictionary(datapackage: Package, output_path: pathlib.Path) -> None:
                 )
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         "Generate dataset info readme from datapackage and data files"
     )
@@ -103,12 +112,15 @@ if __name__ == "__main__":
     datapackage = Package(args.datapackage)
 
     for resource in datapackage.resources:
-        # resource path should be relative to the datapackage file
+        # assume resource path is relative to the datapackage file
         datafile = args.datapackage.parent / resource.path
-        print("\n\nInspecting %s...\n\n" % datafile)
-
+        # generate summary information for inclusion in a plain text readme file
         readme_info(resource, datafile, field_list=args.field_list)
 
     # if data dictionary is requested, create it based on info in datapackage file
     if args.data_dictionary:
         data_dictionary(datapackage, args.data_dictionary)
+
+
+if __name__ == "__main__":
+    main()
