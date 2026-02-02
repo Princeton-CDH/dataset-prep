@@ -59,9 +59,20 @@ The 1.2 version of the data published in 2022 includes field details in the READ
 
 > Kotin, Joshua, Koeser, Rebecca Sutton, et al. (2022). Shakespeare and Company Project Dataset: Lending Library Members, Books, Events [Data set]. Version 1.2. Princeton University. [https://doi.org/10.34770/dtqa-2981](https://doi.org/10.34770/dtqa-2981)
 
+## Developer Instructions
+
+This repository uses [git-flow](https://github.com/nvie/gitflow) branching conventions;
+**main** contains the most recent release, and work in progress will be on the
+**develop** branch. Pull requests for new features should be made against develop.
+
+To install with development dependencies, use `pip install -e .[dev]` (or `uv sync`).
+
+If you plan to contribute, please install pre-commit hooks first by running
+`pre-commit install` (or `uv tool install pre-commit --with pre-commit-uv`).
+
 ## License
 
 This project is licensed under the [Apache 2.0 License](LICENSE).
 
-(c)2025 Trustees of Princeton University. Permission granted for non-commercial
+(c)2026 Trustees of Princeton University. Permission granted for non-commercial
 distribution online under a standard Open Source license.
