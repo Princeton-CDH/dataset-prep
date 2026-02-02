@@ -27,9 +27,8 @@ datapackage file, with the referenced data files present at the path specified
 in the datapackage. If you do not have a datapackage, you can create a preliminary
 version with the python `frictionless` package (which is a dependency of this package).
 
-\`\`console
+```console
 frictionless describe data.csv other_data.csv --type package --json > datapackage.json
-
 ````
 
 (We prefer JSON, but YAML is also fine; any format supported by frictionless should work. )
